@@ -3,6 +3,10 @@ way:
 	meson setup build
 	meson compile -C build
 
+run:
+	make way
+	./build/waycast
+
 dev_dependencies:
 	sudo rm -rf /usr/share/waycast
 	sudo ln -s $(PWD) /usr/share/waycast

@@ -1,1 +1,6 @@
+[general]
 theme = "default"
+
+[window]
+width = 600
+height = 400

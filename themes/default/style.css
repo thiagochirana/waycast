@@ -1,22 +1,47 @@
-window {
-  background-color: rgba(25, 25, 35, 0.9);
+window.waycast-overlay {
+  background-color: rgba(25, 25, 35, 0.85);
   border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20vh;
+  padding: 16px;
+  min-width: 600px;
+  min-height: 400px;
 }
 
 entry {
   background-color: rgba(255,255,255,0.1);
   color: white;
-  border-radius: 8px;
-  padding: 8px;
   border: none;
+  border-radius: 8px;
+  padding: 10px;
 }
 
 label {
   color: rgba(255,255,255,0.9);
-  padding: 4px;
+  font-size: 14px;
+  padding: 6px 8px;
 }
 
 label:hover {
-  background-color: rgba(120,100,255,0.2);
+  background-color: rgba(120,100,255,0.25);
   border-radius: 6px;
+}
+
+
+list {
+  background: transparent;
+}
+
+
+window.waycast-overlay {
+  background-color: rgba(25, 25, 35, 0.85);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  margin: 20vh auto;
+  padding: 16px;
+  min-width: 400px;
+  max-height: 70vh;
+  overflow-y: auto;
 }
