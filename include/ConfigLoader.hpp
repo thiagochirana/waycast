@@ -1,12 +1,23 @@
 #pragma once
 #include <string>
-#include <map>
+#include <toml++/toml.h>
+
+struct WindowConfig {
+    int width = 600;
+    int height = 400;
+};
+
+struct Config {
+    WindowConfig window;
+    std::string theme = "default";
+};
 
 class ConfigLoader {
 public:
-    ConfigLoader(const std::string& path);
-    std::string getTheme() const;
+    explicit ConfigLoader(const std::string &path = "");
+    const Config &get() const;
 
 private:
-    std::string theme;
+    Config config;
+    void loadFromFile(const std::string &path);
 };

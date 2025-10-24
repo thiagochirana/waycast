@@ -6,30 +6,26 @@
 #include <string>
 #include <vector>
 #include <toml++/toml.hpp>
-
-struct Config {
-    int width = 600;
-    int height = 400;
-};
+#include <algorithm>
+#include "ConfigLoader.hpp"
 
 static GtkWidget *search_entry;
 static GtkWidget *list_box;
+static GtkWidget *main_window;
 static std::vector<std::pair<std::string, std::string>> apps;
 static Config config;
 
+// -----------------------------------------------------------------------------
+// CONFIG
+// -----------------------------------------------------------------------------
 static void load_config() {
-    try {
-        auto cfg = toml::parse_file("/usr/share/waycast/config.toml");
-        if (cfg["window"]["width"].is_integer())
-            config.width = *cfg["window"]["width"].value<int>();
-        if (cfg["window"]["height"].is_integer())
-            config.height = *cfg["window"]["height"].value<int>();
-    } catch (const std::exception &e) {
-        g_printerr("Config.toml não encontrado ou inválido. Usando padrão.\n");
-    }
+    ConfigLoader loader;
+    config = loader.get();
 }
 
-
+// -----------------------------------------------------------------------------
+// APPS
+// -----------------------------------------------------------------------------
 static void load_apps() {
     apps.clear();
     std::vector<std::string> dirs = {
@@ -54,40 +50,56 @@ static void load_apps() {
             }
         }
     }
-
-    for (auto &[name, exec] : apps) {
-        GtkWidget *row = gtk_label_new(name.c_str());
-        gtk_widget_set_halign(row, GTK_ALIGN_START);
-        gtk_list_box_append(GTK_LIST_BOX(list_box), row);
-    }
 }
 
+// -----------------------------------------------------------------------------
+// FILTRO DE BUSCA (renderiza resultados sob demanda)
+// -----------------------------------------------------------------------------
 static void filter_apps(GtkEditable *editable, gpointer) {
     const gchar *text = gtk_editable_get_text(editable);
-    for (GtkWidget *row = gtk_widget_get_first_child(list_box);
-         row != NULL;
-         row = gtk_widget_get_next_sibling(row)) {
+    gtk_list_box_remove_all(GTK_LIST_BOX(list_box));
 
-        GtkWidget *child = gtk_list_box_row_get_child(GTK_LIST_BOX_ROW(row));
-        if (!GTK_IS_LABEL(child)) continue;
-        const gchar *label_text = gtk_label_get_text(GTK_LABEL(child));
-        if (!label_text) continue;
+    if (!text || strlen(text) == 0)
+        return; // não mostra nada se o campo estiver vazio
 
-        gboolean visible = (strlen(text) == 0) ||
-                           (g_strrstr(g_utf8_strdown(label_text, -1),
-                                      g_utf8_strdown(text, -1)) != NULL);
-        gtk_widget_set_visible(row, visible);
+    for (auto &[name, exec] : apps) {
+        std::string lowered_name = name;
+        std::string lowered_text = text;
+        std::transform(lowered_name.begin(), lowered_name.end(), lowered_name.begin(), ::tolower);
+        std::transform(lowered_text.begin(), lowered_text.end(), lowered_text.begin(), ::tolower);
+
+        if (lowered_name.find(lowered_text) != std::string::npos) {
+            GtkWidget *row = gtk_label_new(name.c_str());
+            gtk_widget_set_halign(row, GTK_ALIGN_START);
+            gtk_list_box_append(GTK_LIST_BOX(list_box), row);
+        }
     }
 }
 
+// -----------------------------------------------------------------------------
+// EXECUTAR APP + FECHAR
+// -----------------------------------------------------------------------------
 static void launch_app(GtkListBox *, GtkListBoxRow *row, gpointer) {
     int index = gtk_list_box_row_get_index(row);
-    if (index >= 0 && index < (int)apps.size()) {
-        std::string cmd = apps[index].second + " &";
-        std::system(cmd.c_str());
+    if (index >= 0) {
+        GtkWidget *child = gtk_list_box_row_get_child(row);
+        const gchar *label_text = gtk_label_get_text(GTK_LABEL(child));
+
+        // encontra o app correspondente
+        for (auto &[name, exec] : apps) {
+            if (name == label_text) {
+                std::string cmd = exec + " &";
+                std::system(cmd.c_str());
+                gtk_window_close(GTK_WINDOW(main_window)); // fecha imediatamente
+                return;
+            }
+        }
     }
 }
 
+// -----------------------------------------------------------------------------
+// LAYOUT
+// -----------------------------------------------------------------------------
 static GtkWidget* create_main_layout() {
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
     gtk_widget_set_margin_top(vbox, 12);
@@ -108,10 +120,15 @@ static GtkWidget* create_main_layout() {
     return vbox;
 }
 
+// -----------------------------------------------------------------------------
+// JANELA
+// -----------------------------------------------------------------------------
 static GtkWidget* create_main_window(GtkApplication *app) {
     GtkWidget *win = adw_application_window_new(app);
+    main_window = win;
+
     gtk_window_set_title(GTK_WINDOW(win), "Waycast");
-    gtk_window_set_default_size(GTK_WINDOW(win), config.width, config.height);
+    gtk_window_set_default_size(GTK_WINDOW(win), config.window.width, config.window.height);
 
     gtk_window_set_decorated(GTK_WINDOW(win), FALSE);
     gtk_window_set_resizable(GTK_WINDOW(win), FALSE);
@@ -123,13 +140,16 @@ static GtkWidget* create_main_window(GtkApplication *app) {
     return win;
 }
 
+// -----------------------------------------------------------------------------
+// ENTRADA PRINCIPAL
+// -----------------------------------------------------------------------------
 void ui_manager_start(GtkApplication *app) {
     load_config();
+    load_apps();
+
     GtkWidget *win = create_main_window(app);
     GtkWidget *layout = create_main_layout();
 
     adw_application_window_set_content(ADW_APPLICATION_WINDOW(win), layout);
-    load_apps();
-
     gtk_window_present(GTK_WINDOW(win));
 }
