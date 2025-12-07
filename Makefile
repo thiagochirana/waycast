@@ -1,10 +1,13 @@
-way:
+create:
 	rm -rf build
 	meson setup build
 	meson compile -C build
 
 run:
-	make way
+	./build/waycast
+
+dev:
+	make create
 	./build/waycast
 
 dev_dependencies:

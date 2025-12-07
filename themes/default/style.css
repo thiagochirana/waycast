@@ -18,28 +18,35 @@ entry {
   padding: 10px;
 }
 
-label {
+.app-grid-scroller {
+  background: transparent;
+  border: none;
+}
+
+.app-grid flowboxchild {
+  background-color: transparent;
+  border-radius: 12px;
+  padding: 16px;
+  transition: background-color 120ms ease;
+}
+
+.app-grid flowboxchild:selected,
+.app-grid flowboxchild:focus-within,
+.app-grid flowboxchild:hover {
+  background-color: rgba(120,100,255,0.25);
+}
+
+.app-item {
   color: rgba(255,255,255,0.9);
   font-size: 14px;
-  padding: 6px 8px;
+  min-width: 120px;
 }
 
-label:hover {
-  background-color: rgba(120,100,255,0.25);
-  border-radius: 6px;
+.app-icon {
+  margin-bottom: 8px;
 }
 
-
-list {
-  background: transparent;
-}
-
-
-window.waycast-overlay {
-  background-color: rgba(25, 25, 35, 0.85);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  margin: 20px;
-  padding: 16px;
-  min-width: 400px;
+.app-name {
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
 }

@@ -1,15 +1,14 @@
-project('waycast', 'cpp',
+project('waycast', 'c',
   version: '0.1.0',
-  default_options: ['cpp_std=c++20']
+  default_options: ['c_std=c11']
 )
 
 gtkdep = dependency('gtk4')
 adwdep = dependency('libadwaita-1')
-tomldep = dependency('tomlplusplus', required : false)
 
 executable('waycast',
-  ['src/main.cpp', 'src/ConfigLoader.cpp', 'src/ThemeManager.cpp', 'src/UIManager.cpp'],
+  ['src/main.c', 'src/ConfigLoader.c', 'src/ThemeManager.c', 'src/UIManager.c'],
   include_directories: include_directories('include'),
-  dependencies: [gtkdep, adwdep, tomldep],
+  dependencies: [gtkdep, adwdep],
   install: true
 )
