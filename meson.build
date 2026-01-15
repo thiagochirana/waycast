@@ -3,12 +3,12 @@ project('waycast', 'c',
   default_options: ['c_std=c11']
 )
 
-gtkdep = dependency('gtk4')
-adwdep = dependency('libadwaita-1')
+glibdep = dependency('glib-2.0')
+raylibdep = dependency('raylib')
 
 executable('waycast',
   ['src/main.c', 'src/ConfigLoader.c', 'src/ThemeManager.c', 'src/UIManager.c'],
   include_directories: include_directories('include'),
-  dependencies: [gtkdep, adwdep],
+  dependencies: [glibdep, raylibdep],
   install: true
 )
