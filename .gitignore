@@ -1,3 +1,6 @@
 build/
+pkg/
+waycast/
+*.pkg.tar.zst
 *.log
 *.env

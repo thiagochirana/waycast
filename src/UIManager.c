@@ -32,19 +32,31 @@ static Palette palette_from_theme(const char *theme_name) {
     }
 
     return (Palette){
-        .background = (Color){20, 22, 28, 255},
-        .panel = (Color){31, 33, 41, 255},
-        .panel_border = (Color){60, 66, 78, 255},
-        .text = (Color){240, 236, 229, 255},
-        .muted_text = (Color){156, 152, 145, 255},
-        .highlight = (Color){52, 58, 72, 255},
-        .highlight_border = (Color){120, 126, 140, 255}
+        .background = (Color){0, 0, 0, 255},
+        .panel = (Color){6, 6, 6, 255},
+        .panel_border = (Color){255, 255, 255, 255},
+        .text = (Color){255, 255, 255, 255},
+        .muted_text = (Color){200, 200, 200, 255},
+        .highlight = (Color){20, 20, 20, 255},
+        .highlight_border = (Color){255, 255, 255, 255}
     };
 }
 
+static void center_window(int width, int height) {
+    const int monitor = GetCurrentMonitor();
+    int x = (GetMonitorWidth(monitor) - width) / 2;
+    int y = (GetMonitorHeight(monitor) - height) / 2;
+    if (x < 0)
+        x = 0;
+    if (y < 0)
+        y = 0;
+    SetWindowPosition(x, y);
+}
+
 void ui_manager_start(const Config *config) {
-    const int width = (config && config->window.width > 0) ? config->window.width : 600;
-    const int height = (config && config->window.height > 0) ? config->window.height : 400;
+    (void)config;
+    const int initial_width = 1000;
+    const int initial_height = 600;
 
     UIAppData data;
     ui_app_data_init(&data);
@@ -56,9 +68,11 @@ void ui_manager_start(const Config *config) {
     UIAppGrid grid;
     ui_app_grid_init(&grid);
 
-    Palette palette = palette_from_theme((config && config->theme) ? config->theme : "default");
+    Palette palette = palette_from_theme("default");
 
-    InitWindow(width, height, "Waycast");
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    InitWindow(initial_width, initial_height, "Waycast");
+    center_window(initial_width, initial_height);
     SetTargetFPS(60);
 
     Font ui_font = LoadFontEx("fonts/SFMono-Regular.otf", 32, NULL, 0);
@@ -71,6 +85,10 @@ void ui_manager_start(const Config *config) {
     const int cell_gap = 12;
 
     while (!WindowShouldClose()) {
+        if (IsWindowResized()) {
+            center_window(GetScreenWidth(), GetScreenHeight());
+        }
+
         bool should_close = false;
         ui_search_bar_handle_input(&search, &should_close);
         if (should_close)
@@ -82,6 +100,8 @@ void ui_manager_start(const Config *config) {
             search.dirty = false;
         }
 
+        const int width = GetScreenWidth();
+        const int height = GetScreenHeight();
         int available_width = width - margin * 2;
         int cols = ui_app_grid_columns(available_width, cell_width, cell_gap);
         float grid_top = margin + search_height + 8.0f;
